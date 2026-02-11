@@ -18,13 +18,16 @@ dependencyResolutionManagement {
 }
 ```
 
-Add dependency to `app/build.gradle`:
+Add dependencies to `app/build.gradle`:
 
 ```groovy
 dependencies {
   implementation 'com.github.authgear:authgear-sdk-android:2024-12-11.0'
+  implementation 'androidx.appcompat:appcompat:1.6.1'  // Required for Authgear UI
 }
 ```
+
+**Note:** The `androidx.appcompat` dependency is required because Authgear's authentication and settings UI uses `AppCompatActivity`.
 
 Enable Java 8+ desugaring:
 
@@ -127,6 +130,36 @@ Add to `AndroidManifest.xml`:
     </intent-filter>
 </activity>
 ```
+
+## Theme Configuration
+
+**Important:** Authgear requires an AppCompat theme. In your `AndroidManifest.xml`, ensure your application uses an AppCompat theme:
+
+```xml
+<application
+    android:theme="@style/Theme.AppCompat.Light.NoActionBar"
+    ...>
+```
+
+Or define a custom theme in `res/values/themes.xml`:
+
+```xml
+<resources>
+    <style name="AppTheme" parent="Theme.AppCompat.Light.NoActionBar">
+        <!-- Your customizations -->
+    </style>
+</resources>
+```
+
+Then reference it in your manifest:
+
+```xml
+<application
+    android:theme="@style/AppTheme"
+    ...>
+```
+
+**Why this is required:** Authgear's authentication and settings UI uses `AppCompatActivity`, which requires an AppCompat-based theme. Using a non-AppCompat theme (e.g., `android:Theme.Material.Light`) will cause the app to crash when opening Authgear UI.
 
 ## Authentication
 
@@ -235,6 +268,35 @@ val isAuthenticated = authgear.sessionState == SessionState.AUTHENTICATED
 ```
 
 ## Troubleshooting
+
+### "You need to use a Theme.AppCompat theme" (CRITICAL)
+
+If the app crashes when tapping Login or opening Settings with:
+```
+java.lang.IllegalStateException: You need to use a Theme.AppCompat theme (or descendant) with this activity.
+```
+
+**Solution:**
+1. Add the AppCompat dependency if not already present:
+   ```groovy
+   implementation 'androidx.appcompat:appcompat:1.6.1'
+   ```
+
+2. Change your app theme to an AppCompat theme in `AndroidManifest.xml`:
+   ```xml
+   <application
+       android:theme="@style/Theme.AppCompat.Light.NoActionBar"
+       ...>
+   ```
+
+   Or use a custom theme that inherits from AppCompat:
+   ```xml
+   <style name="AppTheme" parent="Theme.AppCompat.Light.NoActionBar">
+       <!-- Your customizations -->
+   </style>
+   ```
+
+**Why:** Authgear's authentication and settings UI uses `AppCompatActivity`, which requires an AppCompat-based theme. Non-AppCompat themes like `android:Theme.Material.Light` will cause crashes.
 
 ### "Unable to resolve host" / DNS Issues
 
